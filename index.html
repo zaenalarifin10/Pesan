@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kata Kita</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+  <div class="w-full max-w-md bg-white rounded-xl shadow-md p-6 space-y-4">
+    <h1 class="text-xl font-bold text-center">Kirim Kata Rahasia</h1>
+    <input id="kataInput" type="text" placeholder="Tulis kata di sini"
+      class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
+    <button onclick="kirimKata()" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">
+      Kirim
+    </button>
+
+    <div id="kataList" class="space-y-2 mt-4 text-sm text-gray-700">
+      <!-- Kata akan muncul di sini -->
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+
+    // Konfigurasi Firebase kamu
+    const firebaseConfig = {
+      apiKey: "AIzaSyBfpgasxtvd-ZWZ1YugluxQKTE-ZvC6jfM",
+      authDomain: "pesan-ffc61.firebaseapp.com",
+      databaseURL: "https://pesan-ffc61-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "pesan-ffc61",
+      storageBucket: "pesan-ffc61.firebasestorage.app",
+      messagingSenderId: "1026315332815",
+      appId: "1:1026315332815:web:e14eda40c23dc3fe9a1bba"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const kataRef = ref(db, "kata");
+
+    // Fungsi kirim kata
+    window.kirimKata = () => {
+      const input = document.getElementById("kataInput");
+      const kata = input.value.trim();
+      if (kata) {
+        push(kataRef, kata);
+        input.value = "";
+      }
+    };
+
+    // Tampilkan kata baru secara real-time
+    const kataList = document.getElementById("kataList");
+    onChildAdded(kataRef, (data) => {
+      const div = document.createElement("div");
+      div.textContent = `• ${data.val()}`;
+      kataList.prepend(div);
+    });
+  </script>
+</body>
+  </html>
