@@ -10,6 +10,9 @@
 
   <div class="w-full max-w-md bg-white rounded-xl shadow-md p-6 space-y-4">
     <h1 class="text-xl font-bold text-center">Kirim Kata Rahasia</h1>
+    
+    <p class="text-sm text-gray-500 text-center" id="usernameDisplay"></p>
+
     <input id="kataInput" type="text" placeholder="Tulis kata di sini"
       class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
 
@@ -22,13 +25,23 @@
     </div>
   </div>
 
+  <!-- Pop-up untuk username -->
+  <div id="popupUsername" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg space-y-4 w-80">
+      <h2 class="text-lg font-bold text-center">Masukkan Namamu</h2>
+      <input id="inputUsername" type="text" placeholder="Contoh: Arifin"
+        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+      <button onclick="simpanUsername()" class="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600">
+        Simpan
+      </button>
+    </div>
+  </div>
+
   <!-- Firebase SDK -->
   <script type="module">
-    // Import Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
-    // Konfigurasi Firebase kamu
     const firebaseConfig = {
       apiKey: "AIzaSyBfpgasxtvd-ZWZ1YugluxQKTE-ZvC6jfM",
       authDomain: "pesan-ffc61.firebaseapp.com",
@@ -43,21 +56,46 @@
     const db = getDatabase(app);
     const kataRef = ref(db, "kata");
 
-    // Fungsi kirim kata
+    // Cek username
+    let username = localStorage.getItem("username");
+
+    const popup = document.getElementById("popupUsername");
+    const usernameDisplay = document.getElementById("usernameDisplay");
+
+    if (!username) {
+      popup.classList.remove("hidden");
+    } else {
+      usernameDisplay.innerText = `Halo, ${username}`;
+    }
+
+    window.simpanUsername = () => {
+      const input = document.getElementById("inputUsername").value.trim();
+      if (input) {
+        localStorage.setItem("username", input);
+        username = input;
+        usernameDisplay.innerText = `Halo, ${username}`;
+        popup.classList.add("hidden");
+      }
+    };
+
     window.kirimKata = () => {
       const input = document.getElementById("kataInput");
       const kata = input.value.trim();
-      if (kata) {
-        push(kataRef, kata);
+      if (kata && username) {
+        push(kataRef, {
+          nama: username,
+          isi: kata,
+          waktu: Date.now()
+        });
         input.value = "";
       }
     };
 
-    // Tampilkan kata baru secara real-time
     const kataList = document.getElementById("kataList");
     onChildAdded(kataRef, (data) => {
+      const val = data.val();
       const div = document.createElement("div");
-      div.textContent = `• ${data.val()}`;
+      div.innerHTML = `<strong>${val.nama}</strong>: ${val.isi}`;
       kataList.prepend(div);
     });
   </script>
